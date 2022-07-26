@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   Text,
@@ -6,12 +6,21 @@ import {
   Button,
   Pressable,
   Modal,
+  FlatList
 } from 'react-native';
 
 import Formulario from './src/components/Formulario';
+import Paciente from './src/components/Paciente';
 
 const App = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [pacientes, setPacientes] = useState([]);
+  const [paciente, setPaciente] = useState({});
+
+  const pacienteEditar = (id) => {
+    const pacienteEditar = pacientes.filter(paciente => paciente.id === id)
+    setPaciente(pacienteEditar[0])
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -20,12 +29,38 @@ const App = () => {
         <Text style={styles.tituloBold}>Veterinaria</Text>
       </Text>
       <Pressable
-        onPress={() => setModalVisible(true)}
+        onPress={() => { setModalVisible(!modalVisible); setPaciente({}) }}
         style={styles.btnNuevaCita}>
         <Text style={styles.btnTextoNuevaCita}>Nueva Cita</Text>
       </Pressable>
 
-      <Formulario modalVisible={modalVisible} />
+      {pacientes.length === 0
+        ?
+        <Text style={styles.noPacientes} >No hay paciente aun</Text>
+        :
+        <FlatList
+          style={styles.listado}
+          data={pacientes}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => {
+            return (
+              <Paciente
+                item={item}
+                setModalVisible={setModalVisible}
+                pacienteEditar={pacienteEditar}
+              />
+            )
+          }}
+        />
+      }
+
+      <Formulario
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        pacientes={pacientes}
+        setPacientes={setPacientes}
+        paciente={paciente}
+      />
     </SafeAreaView>
   );
 };
@@ -59,6 +94,16 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
   },
+  noPacientes: {
+    marginTop: 40,
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '600'
+  },
+  listado: {
+    marginTop: 50,
+    marginHorizontal: 30
+  }
 });
 
 export default App;

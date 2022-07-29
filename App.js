@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   SafeAreaView,
   Text,
@@ -6,21 +6,46 @@ import {
   Button,
   Pressable,
   Modal,
-  FlatList
+  FlatList,
+  Alert,
 } from 'react-native';
 
 import Formulario from './src/components/Formulario';
 import Paciente from './src/components/Paciente';
+import InformacionPaciente from './src/components/InformacionPaciente';
 
 const App = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [pacientes, setPacientes] = useState([]);
   const [paciente, setPaciente] = useState({});
+  const [modalPaciente, setModalPaciente] = useState(false);
 
-  const pacienteEditar = (id) => {
-    const pacienteEditar = pacientes.filter(paciente => paciente.id === id)
-    setPaciente(pacienteEditar[0])
-  }
+  const pacienteEditar = id => {
+    const pacienteEditar = pacientes.filter(paciente => paciente.id === id);
+    setPaciente(pacienteEditar[0]);
+  };
+
+  const pacienteEliminar = id => {
+    Alert.alert(
+      '¿Deseas eliminar este paciente?',
+      'Un paciente eliminado no se puede recuperar',
+      [
+        {
+          text: 'Cancelar',
+        },
+        {
+          text: 'Si, Eliminar',
+          onPress: () => {
+            const pacientesActualizados = pacientes.filter(
+              pacientesState => pacientesState.id !== id,
+            );
+
+            setPacientes(pacientesActualizados);
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -29,30 +54,35 @@ const App = () => {
         <Text style={styles.tituloBold}>Veterinaria</Text>
       </Text>
       <Pressable
-        onPress={() => { setModalVisible(!modalVisible); setPaciente({}) }}
+        onPress={() => {
+          setModalVisible(!modalVisible);
+          setPaciente({});
+        }}
         style={styles.btnNuevaCita}>
         <Text style={styles.btnTextoNuevaCita}>Nueva Cita</Text>
       </Pressable>
 
-      {pacientes.length === 0
-        ?
-        <Text style={styles.noPacientes} >No hay paciente aun</Text>
-        :
+      {pacientes.length === 0 ? (
+        <Text style={styles.noPacientes}>No hay paciente aun</Text>
+      ) : (
         <FlatList
           style={styles.listado}
           data={pacientes}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
+          keyExtractor={item => item.id}
+          renderItem={({item}) => {
             return (
               <Paciente
                 item={item}
                 setModalVisible={setModalVisible}
+                setPaciente={setPaciente}
                 pacienteEditar={pacienteEditar}
+                pacienteEliminar={pacienteEliminar}
+                setModalPaciente={setModalPaciente}
               />
-            )
+            );
           }}
         />
-      }
+      )}
 
       <Formulario
         modalVisible={modalVisible}
@@ -60,7 +90,15 @@ const App = () => {
         pacientes={pacientes}
         setPacientes={setPacientes}
         paciente={paciente}
+        setPaciente={setPaciente}
       />
+
+      <Modal visible={modalPaciente} animationType="fade">
+        <InformacionPaciente
+          paciente={paciente}
+          setModalPaciente={setModalPaciente}
+        />
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -98,12 +136,12 @@ const styles = StyleSheet.create({
     marginTop: 40,
     textAlign: 'center',
     fontSize: 24,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   listado: {
     marginTop: 50,
-    marginHorizontal: 30
-  }
+    marginHorizontal: 30,
+  },
 });
 
 export default App;
